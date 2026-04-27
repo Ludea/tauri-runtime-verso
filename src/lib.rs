@@ -86,7 +86,59 @@ use std::{
     sync::{Mutex, OnceLock},
 };
 
+#[cfg(feature = "vendored")]
+use versoview::verso::EventLoopProxyMessage;
+#[cfg(feature = "vendored")]
+use versoview::{Result, Verso};
+#[cfg(feature = "vendored")]
+use winit::application::ApplicationHandler;
+#[cfg(feature = "vendored")]
+use winit::event_loop::{self, DeviceEvents};
+#[cfg(feature = "vendored")]
+use winit::event_loop::{EventLoop, EventLoopProxy};
+
 static VERSO_PATH: OnceLock<PathBuf> = OnceLock::new();
+
+#[cfg(feature = "vendored")]
+struct App {
+    verso: Option<Verso>,
+    proxy: EventLoopProxy<EventLoopProxyMessage>,
+}
+
+#[cfg(feature = "vendored")]
+impl ApplicationHandler<EventLoopProxyMessage> for App {
+    fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
+        self.verso = Some(Verso::new(event_loop, self.proxy.clone()));
+    }
+
+    fn window_event(
+        &mut self,
+        event_loop: &winit::event_loop::ActiveEventLoop,
+        window_id: winit::window::WindowId,
+        event: winit::event::WindowEvent,
+    ) {
+        if let Some(v) = self.verso.as_mut() {
+            v.handle_window_event(event_loop, window_id, event);
+        }
+    }
+
+    fn user_event(
+        &mut self,
+        event_loop: &event_loop::ActiveEventLoop,
+        event: EventLoopProxyMessage,
+    ) {
+        if let Some(v) = self.verso.as_mut() {
+            match event {
+                EventLoopProxyMessage::Wake => {
+                    v.request_redraw(event_loop);
+                }
+                EventLoopProxyMessage::IpcMessage(message) => {
+                    v.handle_incoming_webview_message(event_loop, *message);
+                }
+            }
+        }
+    }
+}
 
 /// Sets the Verso executable path to ues for the webviews,
 /// must be called before you create any webviews if you don't have the `externalBin` setup
@@ -157,7 +209,7 @@ fn get_verso_resource_directory() -> Option<PathBuf> {
 ///
 /// ### Example:
 ///
-/// ```
+/// ```22228
 /// fn main() {
 ///     tauri_runtime_verso::set_verso_path("../verso/target/debug/versoview");
 ///     tauri_runtime_verso::set_verso_resource_directory("../verso/resources");
@@ -199,4 +251,24 @@ fn get_verso_devtools_port() -> Option<u16> {
 /// ```
 pub fn builder() -> tauri::Builder<VersoRuntime> {
     tauri::Builder::new().invoke_system(INVOKE_SYSTEM_SCRIPTS)
+}
+
+#[cfg(feature = "vendored")]
+pub fn create_embedded_versoview() -> Result<()> {
+    init_crypto();
+
+    let event_loop = EventLoop::<EventLoopProxyMessage>::with_user_event().build()?;
+    event_loop.listen_device_events(DeviceEvents::Never);
+    let proxy = event_loop.create_proxy();
+    let mut app = App { verso: None, proxy };
+    event_loop.run_app(&mut app)?;
+
+    Ok(())
+}
+
+#[cfg(feature = "vendored")]
+fn init_crypto() {
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .expect("Error initializing crypto provider");
 }
