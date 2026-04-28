@@ -79,8 +79,6 @@ mod webview;
 mod window;
 
 pub use runtime::{EventProxy, RuntimeContext, VersoRuntime, VersoRuntimeHandle};
-#[cfg(feature = "vendored")]
-pub use vendored::App;
 pub use webview::VersoWebviewDispatcher;
 pub use window::{VersoWindowBuilder, VersoWindowDispatcher};
 
@@ -89,11 +87,6 @@ use std::{
     path::{Path, PathBuf},
     sync::{Mutex, OnceLock},
 };
-
-#[cfg(feature = "vendored")]
-use versoview::{Result, verso::EventLoopProxyMessage};
-#[cfg(feature = "vendored")]
-use winit::event_loop::{self, EventLoop};
 
 static VERSO_PATH: OnceLock<PathBuf> = OnceLock::new();
 
@@ -208,24 +201,4 @@ fn get_verso_devtools_port() -> Option<u16> {
 /// ```
 pub fn builder() -> tauri::Builder<VersoRuntime> {
     tauri::Builder::new().invoke_system(INVOKE_SYSTEM_SCRIPTS)
-}
-
-#[cfg(feature = "vendored")]
-pub fn create_embedded_versoview() -> Result<()> {
-    init_crypto();
-
-    let event_loop = EventLoop::<EventLoopProxyMessage>::with_user_event().build()?;
-    event_loop.listen_device_events(DeviceEvents::Never);
-    let proxy = event_loop.create_proxy();
-    let mut app = App { verso: None, proxy };
-    event_loop.run_app(&mut app)?;
-
-    Ok(())
-}
-
-#[cfg(feature = "vendored")]
-fn init_crypto() {
-    rustls::crypto::aws_lc_rs::default_provider()
-        .install_default()
-        .expect("Error initializing crypto provider");
 }

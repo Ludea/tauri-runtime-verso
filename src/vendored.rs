@@ -42,3 +42,21 @@ impl ApplicationHandler<EventLoopProxyMessage> for App {
         }
     }
 }
+
+pub fn create_embedded_versoview() -> Result<()> {
+    init_crypto();
+
+    let event_loop = EventLoop::<EventLoopProxyMessage>::with_user_event().build()?;
+    event_loop.listen_device_events(DeviceEvents::Never);
+    let proxy = event_loop.create_proxy();
+    let mut app = App { verso: None, proxy };
+    event_loop.run_app(&mut app)?;
+
+    Ok(())
+}
+
+fn init_crypto() {
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .expect("Error initializing crypto provider");
+}
