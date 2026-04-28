@@ -209,7 +209,7 @@ fn get_verso_resource_directory() -> Option<PathBuf> {
 ///
 /// ### Example:
 ///
-/// ```22228
+/// ```
 /// fn main() {
 ///     tauri_runtime_verso::set_verso_path("../verso/target/debug/versoview");
 ///     tauri_runtime_verso::set_verso_resource_directory("../verso/resources");
