@@ -44,5 +44,9 @@ gtk = { version = "0.18", features = ["v3_24"] }
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "0.3", features = ["NSScreen"] }
 
+[patch."https://github.com/tauri-apps/verso"]
+# verso = { path = "../verso/verso" }
+# versoview_build = { path = "../verso/versoview_build" }
+
 [lints.clippy]
 needless_doctest_main = "allow"
