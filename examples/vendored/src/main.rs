@@ -19,6 +19,9 @@ fn main() {
         .invoke_handler(tauri::generate_handler![greet])
         .setup(|app| {
             dbg!(app.get_webview_window("main").unwrap().inner_size()).unwrap();
+                        // embed verso webview into app
+            tauri_runtime_verso::vendored::create_embedded_versoview().unwrap();
+            
             Ok(())
         })
         .run(tauri::generate_context!())
