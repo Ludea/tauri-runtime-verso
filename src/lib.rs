@@ -87,15 +87,12 @@ use std::{
 };
 
 #[cfg(feature = "vendored")]
-use versoview::verso::EventLoopProxyMessage;
+use versoview::{Result, Verso, verso::EventLoopProxyMessage};
 #[cfg(feature = "vendored")]
-use versoview::{Result, Verso};
-#[cfg(feature = "vendored")]
-use winit::application::ApplicationHandler;
-#[cfg(feature = "vendored")]
-use winit::event_loop::{self, DeviceEvents};
-#[cfg(feature = "vendored")]
-use winit::event_loop::{EventLoop, EventLoopProxy};
+use winit::{
+    application::ApplicationHandler,
+    event_loop::{self, DeviceEvents, EventLoop, EventLoopProxy},
+};
 
 static VERSO_PATH: OnceLock<PathBuf> = OnceLock::new();
 
