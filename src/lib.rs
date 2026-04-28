@@ -73,10 +73,14 @@ mod event_loop_ext;
 mod monitor;
 mod runtime;
 mod utils;
+#[cfg(feature = "vendored")]
+mod vendored;
 mod webview;
 mod window;
 
 pub use runtime::{EventProxy, RuntimeContext, VersoRuntime, VersoRuntimeHandle};
+#[cfg(feature = "vendored")]
+pub use vendored::App;
 pub use webview::VersoWebviewDispatcher;
 pub use window::{VersoWindowBuilder, VersoWindowDispatcher};
 
@@ -87,55 +91,11 @@ use std::{
 };
 
 #[cfg(feature = "vendored")]
-use versoview::{Result, Verso, verso::EventLoopProxyMessage};
+use versoview::{Result, verso::EventLoopProxyMessage};
 #[cfg(feature = "vendored")]
-use winit::{
-    application::ApplicationHandler,
-    event_loop::{self, DeviceEvents, EventLoop, EventLoopProxy},
-};
+use winit::event_loop::{self, EventLoop};
 
 static VERSO_PATH: OnceLock<PathBuf> = OnceLock::new();
-
-#[cfg(feature = "vendored")]
-struct App {
-    verso: Option<Verso>,
-    proxy: EventLoopProxy<EventLoopProxyMessage>,
-}
-
-#[cfg(feature = "vendored")]
-impl ApplicationHandler<EventLoopProxyMessage> for App {
-    fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
-        self.verso = Some(Verso::new(event_loop, self.proxy.clone()));
-    }
-
-    fn window_event(
-        &mut self,
-        event_loop: &winit::event_loop::ActiveEventLoop,
-        window_id: winit::window::WindowId,
-        event: winit::event::WindowEvent,
-    ) {
-        if let Some(v) = self.verso.as_mut() {
-            v.handle_window_event(event_loop, window_id, event);
-        }
-    }
-
-    fn user_event(
-        &mut self,
-        event_loop: &event_loop::ActiveEventLoop,
-        event: EventLoopProxyMessage,
-    ) {
-        if let Some(v) = self.verso.as_mut() {
-            match event {
-                EventLoopProxyMessage::Wake => {
-                    v.request_redraw(event_loop);
-                }
-                EventLoopProxyMessage::IpcMessage(message) => {
-                    v.handle_incoming_webview_message(event_loop, *message);
-                }
-            }
-        }
-    }
-}
 
 /// Sets the Verso executable path to ues for the webviews,
 /// must be called before you create any webviews if you don't have the `externalBin` setup
