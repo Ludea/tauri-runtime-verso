@@ -13,7 +13,9 @@ members = [
 
 [workspace.dependencies]
 verso = { git = "https://github.com/tauri-apps/verso", rev = "572f47ca7ead69ce3e8b0c433e5cff237f0514c9" }
+versoview = { git = "https://github.com/tauri-apps/verso", rev = "572f47ca7ead69ce3e8b0c433e5cff237f0514c9", optional = true }
 versoview_build = { git = "https://github.com/tauri-apps/verso", rev = "572f47ca7ead69ce3e8b0c433e5cff237f0514c9" }
+
 
 [features]
 # Required if you use tauri's macos-private-api feature
@@ -22,7 +24,6 @@ vendored = ["dep:winit", "dep:rustls", "dep:versoview"]
 
 [dependencies]
 verso = { workspace = true }
-versoview = { git = "https://github.com/tauri-apps/verso", rev = "572f47ca7ead69ce3e8b0c433e5cff237f0514c9", optional = true }
 tauri = { version = "=2.7.0", default-features = false }
 tauri-runtime = "=2.7.1"
 tauri-utils = "=2.6.0"
@@ -32,6 +33,8 @@ url = "2"
 http = "1"
 percent-encoding = "2"
 log = "0.4"
+// dependencies used only for vendored feature
+versoview = { workspace = true }
 winit = { version = "0.30", optional = true }
 rustls = { version = "0.23", default-features = false, features = ["aws-lc-rs"], optional = true }
 
