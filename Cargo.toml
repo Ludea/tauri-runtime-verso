@@ -8,6 +8,7 @@ members = [
     "tauri-runtime-verso-build",
     # Examples
     "examples/helloworld",
+    "examples/vendored", 
     "examples/api/src-tauri",
 ]
 
